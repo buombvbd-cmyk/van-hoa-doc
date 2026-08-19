@@ -1,1 +1,0 @@
-{% extends "base.html" %}{% block content %}<main class="container"><h1>📚 Kho sách</h1><p>Khám phá và chọn sách để đọc.</p><div class="grid">{% for b in books %}<div class="card"><div class="cover">📖</div><span class="tag">{{b.category}}</span><h3>{{b.title}}</h3><p><b>{{b.author}}</b></p><p>{{b.description}}</p></div>{% endfor %}</div></main>{% endblock %}
