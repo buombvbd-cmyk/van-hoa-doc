@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<main class="container"><h1>🔔 Thông báo</h1>{% for n in notifications %}<div class="card"><span class="tag">{{n.created}}</span><h3>{{n.title}}</h3><p>{{n.message}}</p></div>{% else %}<div class="panel">Chưa có thông báo.</div>{% endfor %}</main>{% endblock %}

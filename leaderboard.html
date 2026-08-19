@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<main class="container"><h1>🏆 Xếp hạng Văn hóa đọc</h1><div class="panel">{% for r in rows %}<div class="rank"><span>{{loop.index}}. {{r.name}}</span><b>{{r.score}} điểm</b></div>{% else %}<p>Chưa có dữ liệu.</p>{% endfor %}</div></main>{% endblock %}
