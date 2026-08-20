@@ -1,7 +1,42 @@
 {% extends "base.html" %}{% block content %}<main class="container"><h1>⚙️ Trung tâm quản trị</h1>
 <div class="stats"><div class="stat">👥 Tài khoản<b>{{stats.users}}</b></div><div class="stat">📚 Sách<b>{{stats.books}}</b></div><div class="stat">📝 Bài tập<b>{{stats.assignments}}</b></div><div class="stat">🎥 Video<b>{{stats.videos}}</b></div><div class="stat">📨 Bài nộp<b>{{stats.submissions}}</b></div></div>
 <div class="grid">
-<div class="panel"><h2>📚 Đăng sách</h2><form method="post" action="/admin/book"><input class="input" name="title" placeholder="Tên sách" required><input class="input" name="author" placeholder="Tác giả" required><input class="input" name="category" placeholder="Thể loại" required><textarea class="textarea" name="description" placeholder="Mô tả"></textarea><button class="btn primary">Đăng sách</button></form></div>
+<div class="panel">
+    <h2>👤 Tạo tài khoản</h2>
+
+    <form method="post" action="/admin/user">
+
+        <input class="input"
+               name="name"
+               placeholder="Họ và tên"
+               required>
+
+        <input class="input"
+               name="code"
+               placeholder="Mã tài khoản"
+               required>
+
+        <input class="input"
+               name="password"
+               placeholder="password"
+               type="text"
+               required>
+
+        <select class="input" name="role" required>
+            <option value="student">👨‍🎓 Học sinh</option>
+            <option value="teacher">👨‍🏫 Giáo viên</option>
+        </select>
+
+        <input class="input"
+               name="class_name"
+               placeholder="Tên lớp, ví dụ: 5A1">
+
+        <button class="btn primary" type="submit">
+            ➕ Tạo tài khoản
+        </button>
+
+    </form>
+</div><div class="panel"><h2>📚 Đăng sách</h2><form method="post" action="/admin/book"><input class="input" name="title" placeholder="Tên sách" required><input class="input" name="author" placeholder="Tác giả" required><input class="input" name="category" placeholder="Thể loại" required><textarea class="textarea" name="description" placeholder="Mô tả"></textarea><button class="btn primary">Đăng sách</button></form></div>
 <div class="panel"><h2>📝 Giao bài theo lớp</h2><form method="post" action="/admin/assignment"><input class="input" name="title" placeholder="Tên bài tập" required><textarea class="textarea" name="description" placeholder="Nội dung"></textarea><input class="input" name="due" placeholder="Hạn nộp YYYY-MM-DD"><input class="input" name="points" type="number" value="10"><input class="input" name="class_name" placeholder="Lớp (ví dụ 5A1)"><button class="btn primary">Giao bài</button></form></div>
 <div class="panel"><h2>🎥 Đăng video</h2><form method="post" action="/admin/video"><input class="input" name="title" placeholder="Tên video" required><input class="input" name="url" placeholder="URL embed YouTube"><textarea class="textarea" name="description" placeholder="Mô tả"></textarea><button class="btn primary">Đăng video</button></form></div>
 <div class="panel"><h2>🔔 Thông báo</h2><form method="post" action="/admin/notify"><input class="input" name="title" placeholder="Tiêu đề" required><textarea class="textarea" name="message" placeholder="Nội dung" required></textarea><button class="btn primary">Gửi thông báo</button></form></div>
