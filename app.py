@@ -106,14 +106,51 @@ def journal():
 
 @app.route("/admin")
 def admin():
-    if not teacher_required(): return redirect(url_for("login"))
-    c=db()
-    stats={k:c.execute(q).fetchone()[0] for k,q in {
-        "users":"SELECT COUNT(*) FROM users","books":"SELECT COUNT(*) FROM books",
-        "assignments":"SELECT COUNT(*) FROM assignments","videos":"SELECT COUNT(*) FROM videos",
-        "submissions":"SELECT COUNT(*) FROM submissions"}.items()}
-    subs=c.execute("""SELECT s.*,u.name, a.title FROM submissions s JOIN users u ON u.id=s.user_id JOIN assignments a ON a.id=s.assignment_id ORDER BY s.id DESC""").fetchall()
-    c.close(); return render_template("admin.html",stats=stats,subs=subs)
+    if not teacher_required():
+        return redirect(url_for("login"))
+
+    c = db()
+
+    stats = {
+        k: c.execute(q).fetchone()[0]
+        for k, q in {
+            "users": "SELECT COUNT(*) FROM users",
+            "books": "SELECT COUNT(*) FROM books",
+            "assignments": "SELECT COUNT(*) FROM assignments",
+            "videos": "SELECT COUNT(*) FROM videos",
+            "submissions": "SELECT COUNT(*) FROM submissions"
+        }.items()
+    }
+
+    subs = c.execute("""
+        SELECT s.*, u.name, a.title
+        FROM submissions s
+        JOIN users u ON u.id = s.user_id
+        JOIN assignments a ON a.id = s.assignment_id
+        ORDER BY s.id DESC
+    """).fetchall()
+
+    users = c.execute("""
+        SELECT id, name, code, role, class_name
+        FROM users
+        ORDER BY
+            CASE role
+                WHEN 'admin' THEN 1
+                WHEN 'teacher' THEN 2
+                WHEN 'student' THEN 3
+                ELSE 4
+            END,
+            name
+    """).fetchall()
+
+    c.close()
+
+    return render_template(
+        "admin.html",
+        stats=stats,
+        subs=subs,
+        users=users
+    )
 
 @app.route("/admin/book",methods=["POST"])
 def add_book():
