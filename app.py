@@ -172,6 +172,45 @@ def add_student():
         c.commit()
     except sqlite3.IntegrityError: flash("Mã học sinh đã tồn tại.")
     c.close(); return redirect(url_for("students"))
+@app.route("/admin/user", methods=["POST"])
+def add_user():
+    if not current() or current()["role"] != "admin":
+        return redirect(url_for("login"))
+
+    name = request.form.get("name", "").strip()
+    code = request.form.get("code", "").strip()
+    password = request.form.get("password", "").strip()
+    role = request.form.get("role", "student").strip()
+    class_name = request.form.get("class_name", "").strip()
+
+    if not name or not code or not password:
+        flash("Vui lòng nhập đầy đủ họ tên, mã tài khoản và mật khẩu.")
+        return redirect(url_for("admin"))
+
+    if role not in ("student", "teacher"):
+        flash("Loại tài khoản không hợp lệ.")
+        return redirect(url_for("admin"))
+
+    c = db()
+
+    try:
+        c.execute(
+            """
+            INSERT INTO users(name, code, password, role, class_name)
+            VALUES(?,?,?,?,?)
+            """,
+            (name, code, password, role, class_name)
+        )
+
+        c.commit()
+        flash(f"Đã tạo tài khoản {code} cho {name}.")
+
+    except sqlite3.IntegrityError:
+        flash("Mã tài khoản đã tồn tại. Hãy sử dụng mã khác.")
+
+    c.close()
+
+    return redirect(url_for("admin"))
 
 @app.route("/admin/class",methods=["POST"])
 def add_class():
