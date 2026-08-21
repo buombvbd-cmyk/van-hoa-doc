@@ -1,580 +1,105 @@
-{% extends "base.html" %}
-
-{% block content %}
-
-<main class="container">
-
-<h1>⚙️ Trung tâm quản trị</h1>
-
-<div class="stats">
-
-    <div class="stat">
-        👥 Tài khoản
-        <b>{{ stats.users }}</b>
-    </div>
-
-    <div class="stat">
-        📚 Sách
-        <b>{{ stats.books }}</b>
-    </div>
-
-    <div class="stat">
-        📝 Bài tập
-        <b>{{ stats.assignments }}</b>
-    </div>
-
-    <div class="stat">
-        🎥 Video
-        <b>{{ stats.videos }}</b>
-    </div>
-
-    <div class="stat">
-        📨 Bài nộp
-        <b>{{ stats.submissions }}</b>
-    </div>
-
-</div>
-
-
-<div class="grid">
-
-
-<!-- ========================= -->
-<!-- TẠO TÀI KHOẢN -->
-<!-- ========================= -->
-
-<div class="panel">
-
-    <h2>👤 Tạo tài khoản</h2>
-
-    <form method="post" action="/admin/user">
-
-        <input
-            class="input"
-            name="name"
-            placeholder="Họ và tên"
-            required
-        >
-
-        <input
-            class="input"
-            name="code"
-            placeholder="Mã tài khoản"
-            required
-        >
-
-        <input
-            class="input"
-            name="password"
-            placeholder="Mật khẩu"
-            type="password"
-            required
-        >
-
-        <select class="input" name="role" required>
-
-            <option value="student">
-                👨‍🎓 Học sinh
-            </option>
-
-            <option value="teacher">
-                👨‍🏫 Giáo viên
-            </option>
-
-        </select>
-
-        <input
-            class="input"
-            name="class_name"
-            placeholder="Tên lớp, ví dụ: 5A1"
-        >
-
-        <button
-            class="btn primary"
-            type="submit"
-        >
-            ➕ Tạo tài khoản
-        </button>
-
-    </form>
-
-</div>
-
-
-<!-- ========================= -->
-<!-- DANH SÁCH TÀI KHOẢN -->
-<!-- ========================= -->
-
-
-<div class="panel">
-
-    <h2>👥 Danh sách tài khoản</h2>
-
-    {% if users %}
-
-    <div style="overflow-x:auto;">
-
-        <table style="width:100%; border-collapse:collapse;">
-
-            <thead>
-
-                <tr>
-
-                    <th style="padding:10px; text-align:left; border-bottom:1px solid #ddd;">
-                        Họ tên
-                    </th>
-
-                    <th style="padding:10px; text-align:left; border-bottom:1px solid #ddd;">
-                        Mã tài khoản
-                    </th>
-
-                    <th style="padding:10px; text-align:left; border-bottom:1px solid #ddd;">
-                        Vai trò
-                    </th>
-
-                    <th style="padding:10px; text-align:left; border-bottom:1px solid #ddd;">
-                        Lớp
-                    </th>
-
-                    <th style="padding:10px; text-align:left; border-bottom:1px solid #ddd;">
-                        Thao tác
-                    </th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-            {% for u in users %}
-
-                <tr>
-
-                    <td style="padding:10px; border-bottom:1px solid #eee;">
-                        {{ u["name"] }}
-                    </td>
-
-                    <td style="padding:10px; border-bottom:1px solid #eee;">
-                        <b>{{ u["code"] }}</b>
-                    </td>
-
-                    <td style="padding:10px; border-bottom:1px solid #eee;">
-
-                        {% if u["role"] == "admin" %}
-
-                            ⚙️ Quản trị viên
-
-                        {% elif u["role"] == "teacher" %}
-
-                            👨‍🏫 Giáo viên
-
-                        {% else %}
-
-                            🎓 Học sinh
-
-                        {% endif %}
-
-                    </td>
-
-                    <td style="padding:10px; border-bottom:1px solid #eee;">
-                        {{ u["class_name"] or "—" }}
-                    </td>
-
-                    <td style="padding:10px; border-bottom:1px solid #eee;">
-
-                        <!-- CẤP LẠI MẬT KHẨU -->
-
-                        <form
-                            method="post"
-                            action="{{ url_for('reset_user_password', user_id=u['id']) }}"
-                            style="display:inline;"
-                            onsubmit="return confirm('Bạn có chắc muốn cấp lại mật khẩu cho tài khoản này?');"
-                        >
-
-                            <button
-                                class="btn"
-                                type="submit"
-                            >
-                                🔑 Cấp lại mật khẩu
-                            </button>
-
-                        </form>
-
-
-                        <!-- XÓA TÀI KHOẢN -->
-
-                        {% if u["id"] != me["id"] %}
-
-                        <form
-                            method="post"
-                            action="{{ url_for('delete_user', user_id=u['id']) }}"
-                            style="display:inline;"
-                            onsubmit="return confirm('Bạn có chắc chắn muốn XÓA tài khoản này không?');"
-                        >
-
-                            <button
-                                class="btn"
-                                type="submit"
-                            >
-                                🗑️ Xóa
-                            </button>
-
-                        </form>
-
-                        {% endif %}
-
-                    </td>
-
-                </tr>
-
-            {% endfor %}
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-    {% else %}
-
-        <p>Chưa có tài khoản nào.</p>
-
-    {% endif %}
-
-</div>
-
-<!-- ========================= -->
-<!-- ĐĂNG SÁCH -->
-<!-- ========================= -->
-
-<div class="panel">
-
-    <h2>📚 Đăng sách</h2>
-
-    <form method="post" action="/admin/book">
-
-        <input
-            class="input"
-            name="title"
-            placeholder="Tên sách"
-            required
-        >
-
-        <input
-            class="input"
-            name="author"
-            placeholder="Tác giả"
-            required
-        >
-
-        <input
-            class="input"
-            name="category"
-            placeholder="Thể loại"
-            required
-        >
-
-        <textarea
-            class="textarea"
-            name="description"
-            placeholder="Mô tả"
-        ></textarea>
-
-        <button class="btn primary">
-            Đăng sách
-        </button>
-
-    </form>
-
-</div>
-
-
-<!-- ========================= -->
-<!-- GIAO BÀI -->
-<!-- ========================= -->
-
-<div class="panel">
-
-    <h2>📝 Giao bài theo lớp</h2>
-
-    <form method="post" action="/admin/assignment">
-
-        <input
-            class="input"
-            name="title"
-            placeholder="Tên bài tập"
-            required
-        >
-
-        <textarea
-            class="textarea"
-            name="description"
-            placeholder="Nội dung"
-        ></textarea>
-
-        <input
-            class="input"
-            name="due"
-            placeholder="Hạn nộp YYYY-MM-DD"
-        >
-
-        <input
-            class="input"
-            name="points"
-            type="number"
-            value="10"
-        >
-
-        <input
-            class="input"
-            name="class_name"
-            placeholder="Lớp (ví dụ 5A1)"
-        >
-
-        <button class="btn primary">
-            Giao bài
-        </button>
-
-    </form>
-
-</div>
-
-
-<!-- ========================= -->
-<!-- VIDEO -->
-<!-- ========================= -->
-
-<div class="panel">
-
-    <h2>🎥 Đăng video</h2>
-
-    <form method="post" action="/admin/video">
-
-        <input
-            class="input"
-            name="title"
-            placeholder="Tên video"
-            required
-        >
-
-        <input
-            class="input"
-            name="url"
-            placeholder="URL embed YouTube"
-        >
-
-        <textarea
-            class="textarea"
-            name="description"
-            placeholder="Mô tả"
-        ></textarea>
-
-        <button class="btn primary">
-            Đăng video
-        </button>
-
-    </form>
-
-</div>
-
-
-<!-- ========================= -->
-<!-- THÔNG BÁO -->
-<!-- ========================= -->
-
-<div class="panel">
-
-    <h2>🔔 Thông báo</h2>
-
-    <form method="post" action="/admin/notify">
-
-        <input
-            class="input"
-            name="title"
-            placeholder="Tiêu đề"
-            required
-        >
-
-        <textarea
-            class="textarea"
-            name="message"
-            placeholder="Nội dung"
-            required
-        ></textarea>
-
-        <button class="btn primary">
-            Gửi thông báo
-        </button>
-
-    </form>
-
-</div>
-
-
-<!-- ========================= -->
-<!-- HUY HIỆU -->
-<!-- ========================= -->
-
-<div class="panel">
-
-    <h2>🎖️ Huy hiệu</h2>
-
-    <form method="post" action="/admin/badge">
-
-        <input
-            class="input"
-            name="name"
-            placeholder="Tên huy hiệu"
-            required
-        >
-
-        <input
-            class="input"
-            name="icon"
-            value="📚"
-        >
-
-        <textarea
-            class="textarea"
-            name="description"
-            placeholder="Mô tả"
-        ></textarea>
-
-        <input
-            class="input"
-            name="points"
-            type="number"
-            value="50"
-        >
-
-        <button class="btn primary">
-            Tạo huy hiệu
-        </button>
-
-    </form>
-
-</div>
-
-
-<!-- ========================= -->
-<!-- TẢI TÀI LIỆU -->
-<!-- ========================= -->
-
-<div class="panel">
-
-    <h2>📁 Tài liệu</h2>
-
-    <form
-        method="post"
-        action="/upload"
-        enctype="multipart/form-data"
-    >
-
-        <input
-            class="input"
-            type="file"
-            name="file"
-            required
-        >
-
-        <button class="btn primary">
-            Tải lên
-        </button>
-
-    </form>
-
-    <small>
-        PDF, Word, ảnh, MP4/WebM
-    </small>
-        <hr>
-
-<h3>📂 File đã tải lên</h3>
-
-{% if files %}
-
-    {% for file in files %}
-
-        <div style="padding:8px; border-bottom:1px solid #eee;">
-
-            📄 {{ file }}
-
-            <a
-                href="{{ url_for('files', name=file) }}"
-                target="_blank"
-                class="btn"
-            >
-                👁️ Mở
-            </a>
-
-        </div>
-
-    {% endfor %}
-
+{% extends "base.html" %} {% block content %}
+⚙️ Trung tâm quản trị
+👥 Tài khoản {{ stats.users }}
+📚 Sách {{ stats.books }}
+📝 Bài tập {{ stats.assignments }}
+🎥 Video {{ stats.videos }}
+📨 Bài nộp {{ stats.submissions }}
+👤 Tạo tài khoản
+Họ và tên
+ 
+Mã tài khoản
+ 
+Mật khẩu
+ 
+👨‍🎓 Học sinh
+ 
+Tên lớp, ví dụ: 5A1
+ ➕ Tạo tài khoản
+👥 Danh sách tài khoản
+{% if users %}
+{% for u in users %} {% endfor %}
+Họ tên	Mã tài khoản	Vai trò	Lớp	Thao tác
+{{ u["name"] }}	{{ u["code"] }}	{% if u["role"]=="admin" %}⚙️ Quản trị viên {% elif u["role"]=="teacher" %}👨‍🏫 Giáo viên {% else %}🎓 Học sinh{% endif %}	{{ u["class_name"] or "—" }}	🔑 Cấp lại mật khẩu {% if u["id"] != me["id"] %} 🗑️ Xóa {% endif %}
 {% else %}
-
-    <p>Chưa có file nào.</p>
+Chưa có tài khoản nào.
 
 {% endif %}
+📚 Đăng sách
+Tên sách
+ 
+Tác giả
+ 
+Thể loại
+ 
+Mô tả
 
-</div>
+ Đăng sách
+📝 Giao bài theo lớp
+Tên bài tập
+ 
+Nội dung
 
-</div>
+ 
+Hạn nộp YYYY-MM-DD
+ 
+10
+ 
+Lớp (ví dụ 5A1)
+ Giao bài
+🎥 Đăng video
+Tên video
+ 
+URL embed YouTube
+ 
+Mô tả
 
+ Đăng video
+🔔 Thông báo
+Tiêu đề
+ 
+Nội dung
 
-<!-- ========================= -->
-<!-- BÀI ĐÃ NỘP -->
-<!-- ========================= -->
+ Gửi thông báo
+🎖️ Huy hiệu
+Tên huy hiệu
+ 
+📚
+ 
+Mô tả
 
-<h2>📨 Bài đã nộp</h2>
+ 
+50
+ Tạo huy hiệu
+📁 Tải tài liệu & phân loại
+Tên tài liệu
+ Không có tệp nào được chọn 
+📚 Kho sách
+ 
+🏷️ Chọn Tag
+ 
+🎓 Chọn khối lớp
+ 
+Mô tả tài liệu
 
-<div class="panel">
+ ⬆️ Tải lên & phân loại
+Hỗ trợ: PDF, Word, ảnh, MP4/WebM
+📂 Tài liệu đã phân loại
+{% if documents %} {% for d in documents %}
+{{ d["title"] }}
+{% if d["content_type"]=="book" %}📚 Kho sách {% elif d["content_type"]=="video" %}🎥 Video {% elif d["content_type"]=="image" %}🖼️ Hình ảnh {% else %}📄 Tài liệu{% endif %} · 🏷️ {{ d["tag"] or "Chưa có tag" }} · 🎓 {{ d["grade"] or "Tất cả" }}
+👁️ Mở
+{% endfor %} {% else %}
+Chưa có tài liệu được phân loại.
 
+{% endif %}
+📨 Bài đã nộp
 {% for s in subs %}
-
-    <div class="rank">
-
-        <span>
-
-            <b>{{ s.name }}</b>
-            — {{ s.title }}
-
-            <br>
-
-            <small>
-                {{ s.answer }}
-            </small>
-
-        </span>
-
-
-        <form
-            method="post"
-            action="/admin/score/{{ s.id }}"
-        >
-
-            <input
-                name="score"
-                type="number"
-                value="{{ s.score }}"
-                style="width:70px"
-            >
-
-            <button class="btn">
-                Chấm
-            </button>
-
-        </form>
-
-    </div>
-
+{{ s.name }} — {{ s.title }}
+{{ s.answer }}
+ Chấm
 {% else %}
-
-    <p>Chưa có bài nộp.</p>
+Chưa có bài nộp.
 
 {% endfor %}
-
-</div>
-
-</main>
-
 {% endblock %}
