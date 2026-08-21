@@ -486,6 +486,35 @@
     <small>
         PDF, Word, ảnh, MP4/WebM
     </small>
+        <hr>
+
+<h3>📂 File đã tải lên</h3>
+
+{% if files %}
+
+    {% for file in files %}
+
+        <div style="padding:8px; border-bottom:1px solid #eee;">
+
+            📄 {{ file }}
+
+            <a
+                href="{{ url_for('files', name=file) }}"
+                target="_blank"
+                class="btn"
+            >
+                👁️ Mở
+            </a>
+
+        </div>
+
+    {% endfor %}
+
+{% else %}
+
+    <p>Chưa có file nào.</p>
+
+{% endif %}
 
 </div>
 
