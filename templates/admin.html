@@ -105,6 +105,7 @@
 <!-- DANH SÁCH TÀI KHOẢN -->
 <!-- ========================= -->
 
+
 <div class="panel">
 
     <h2>👥 Danh sách tài khoản</h2>
@@ -135,10 +136,13 @@
                         Lớp
                     </th>
 
+                    <th style="padding:10px; text-align:left; border-bottom:1px solid #ddd;">
+                        Thao tác
+                    </th>
+
                 </tr>
 
             </thead>
-
 
             <tbody>
 
@@ -150,11 +154,9 @@
                         {{ u["name"] }}
                     </td>
 
-
                     <td style="padding:10px; border-bottom:1px solid #eee;">
                         <b>{{ u["code"] }}</b>
                     </td>
-
 
                     <td style="padding:10px; border-bottom:1px solid #eee;">
 
@@ -174,10 +176,52 @@
 
                     </td>
 
+                    <td style="padding:10px; border-bottom:1px solid #eee;">
+                        {{ u["class_name"] or "—" }}
+                    </td>
 
                     <td style="padding:10px; border-bottom:1px solid #eee;">
 
-                        {{ u["class_name"] or "—" }}
+                        <!-- CẤP LẠI MẬT KHẨU -->
+
+                        <form
+                            method="post"
+                            action="{{ url_for('reset_user_password', user_id=u['id']) }}"
+                            style="display:inline;"
+                            onsubmit="return confirm('Bạn có chắc muốn cấp lại mật khẩu cho tài khoản này?');"
+                        >
+
+                            <button
+                                class="btn"
+                                type="submit"
+                            >
+                                🔑 Cấp lại mật khẩu
+                            </button>
+
+                        </form>
+
+
+                        <!-- XÓA TÀI KHOẢN -->
+
+                        {% if u["id"] != me["id"] %}
+
+                        <form
+                            method="post"
+                            action="{{ url_for('delete_user', user_id=u['id']) }}"
+                            style="display:inline;"
+                            onsubmit="return confirm('Bạn có chắc chắn muốn XÓA tài khoản này không?');"
+                        >
+
+                            <button
+                                class="btn"
+                                type="submit"
+                            >
+                                🗑️ Xóa
+                            </button>
+
+                        </form>
+
+                        {% endif %}
 
                     </td>
 
@@ -198,7 +242,6 @@
     {% endif %}
 
 </div>
-
 
 <!-- ========================= -->
 <!-- ĐĂNG SÁCH -->
