@@ -200,7 +200,6 @@ def students():
     return render_template("students.html",students=rows,classes=classes)
 
 @app.route("/admin/student",methods=["POST"])
-@app.route("/admin/student",methods=["POST"])
 def add_student():
     if not teacher_required(): return redirect(url_for("login"))
     c=db()
