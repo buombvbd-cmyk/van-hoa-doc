@@ -286,6 +286,42 @@ def delete_user(user_id):
     return redirect(url_for("admin"))
 
 @app.route("/admin/class",methods=["POST"])
+@app.route("/admin/user/<int:user_id>/reset-password", methods=["POST"])
+def reset_user_password(user_id):
+    if not current() or current()["role"] != "admin":
+        return redirect(url_for("login"))
+
+    if user_id == current()["id"]:
+        flash("Không thể cấp lại mật khẩu cho tài khoản đang đăng nhập.")
+        return redirect(url_for("admin"))
+
+    c = db()
+
+    user = c.execute(
+        "SELECT name, code FROM users WHERE id=?",
+        (user_id,)
+    ).fetchone()
+
+    if not user:
+        flash("Không tìm thấy tài khoản.")
+        c.close()
+        return redirect(url_for("admin"))
+
+    new_password = secrets.token_urlsafe(6)
+
+    c.execute(
+        "UPDATE users SET password=? WHERE id=?",
+        (new_password, user_id)
+    )
+
+    c.commit()
+    c.close()
+
+    flash(
+        f"Mật khẩu mới của {user['name']} ({user['code']}) là: {new_password}"
+    )
+
+    return redirect(url_for("admin"))
 def add_class():
     if not teacher_required(): return redirect(url_for("login"))
     c=db()
