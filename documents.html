@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="container">
+
+<h1>📚 Kho tài liệu Văn hóa đọc</h1>
+
+<div class="panel">
+<form method="get" action="/documents">
+
+<select class="input" name="type">
+<option value="">📂 Tất cả loại</option>
+<option value="book" {% if selected_type=="book" %}selected{% endif %}>📚 Kho sách</option>
+<option value="video" {% if selected_type=="video" %}selected{% endif %}>🎥 Video</option>
+<option value="document" {% if selected_type=="document" %}selected{% endif %}>📄 Tài liệu</option>
+<option value="image" {% if selected_type=="image" %}selected{% endif %}>🖼️ Hình ảnh</option>
+</select>
+
+<select class="input" name="tag">
+<option value="">🏷️ Tất cả Tag</option>
+<option value="Văn học" {% if selected_tag=="Văn học" %}selected{% endif %}>📖 Văn học</option>
+<option value="Kỹ năng sống" {% if selected_tag=="Kỹ năng sống" %}selected{% endif %}>🌱 Kỹ năng sống</option>
+<option value="STEM" {% if selected_tag=="STEM" %}selected{% endif %}>🔬 STEM</option>
+<option value="Khoa học" {% if selected_tag=="Khoa học" %}selected{% endif %}>🔭 Khoa học</option>
+<option value="Lịch sử" {% if selected_tag=="Lịch sử" %}selected{% endif %}>🏛️ Lịch sử</option>
+<option value="Truyện" {% if selected_tag=="Truyện" %}selected{% endif %}>📕 Truyện</option>
+<option value="Nghệ thuật" {% if selected_tag=="Nghệ thuật" %}selected{% endif %}>🎨 Nghệ thuật</option>
+<option value="Kỹ năng đọc" {% if selected_tag=="Kỹ năng đọc" %}selected{% endif %}>📚 Kỹ năng đọc</option>
+<option value="Khác" {% if selected_tag=="Khác" %}selected{% endif %}>📂 Khác</option>
+</select>
+
+<select class="input" name="grade">
+<option value="">🎓 Tất cả khối</option>
+<option value="Tất cả" {% if selected_grade=="Tất cả" %}selected{% endif %}>Tất cả</option>
+<option value="Lớp 1" {% if selected_grade=="Lớp 1" %}selected{% endif %}>Lớp 1</option>
+<option value="Lớp 2" {% if selected_grade=="Lớp 2" %}selected{% endif %}>Lớp 2</option>
+<option value="Lớp 3" {% if selected_grade=="Lớp 3" %}selected{% endif %}>Lớp 3</option>
+<option value="Lớp 4" {% if selected_grade=="Lớp 4" %}selected{% endif %}>Lớp 4</option>
+<option value="Lớp 5" {% if selected_grade=="Lớp 5" %}selected{% endif %}>Lớp 5</option>
+</select>
+
+<button class="btn primary" type="submit">🔎 Lọc tài liệu</button>
+</form>
+</div>
+
+<div class="grid">
+
+{% for d in documents %}
+<div class="panel">
+<h2>{{ d["title"] }}</h2>
+
+<p>
+{% if d["content_type"]=="book" %}📚 Kho sách
+{% elif d["content_type"]=="video" %}🎥 Video
+{% elif d["content_type"]=="image" %}🖼️ Hình ảnh
+{% else %}📄 Tài liệu{% endif %}
+</p>
+
+<p>🏷️ <b>{{ d["tag"] or "Chưa phân loại" }}</b></p>
+<p>🎓 {{ d["grade"] or "Tất cả" }}</p>
+
+{% if d["description"] %}
+<p>{{ d["description"] }}</p>
+{% endif %}
+
+<a href="{{ url_for('files',name=d['filename']) }}" target="_blank" class="btn primary">
+👁️ Mở tài liệu
+</a>
+</div>
+{% else %}
+<div class="panel">
+<p>Chưa có tài liệu phù hợp.</p>
+</div>
+{% endfor %}
+
+</div>
+
+</main>
+{% endblock %}
