@@ -200,15 +200,22 @@ def students():
     return render_template("students.html",students=rows,classes=classes)
 
 @app.route("/admin/student",methods=["POST"])
+@app.route("/admin/student",methods=["POST"])
 def add_student():
     if not teacher_required(): return redirect(url_for("login"))
     c=db()
     try:
-        c.execute("INSERT INTO users(name,code,password,role,class_name) VALUES(?,?,?,?,?)",
-                  (request.form["name"],request.form["code"],request.form["password"],"student",request.form["class_name"]))
+        c.execute(
+            "INSERT INTO users(name,code,password,role,class_name) VALUES(?,?,?,?,?)",
+            (request.form["name"],request.form["code"],request.form["password"],"student",request.form["class_name"])
+        )
         c.commit()
-    except sqlite3.IntegrityError: flash("Mã học sinh đã tồn tại.")
-    c.close(); return redirect(url_for("students"))
+    except sqlite3.IntegrityError:
+        flash("Mã học sinh đã tồn tại.")
+    c.close()
+    return redirect(url_for("students"))
+
+
 @app.route("/admin/user", methods=["POST"])
 def add_user():
     if not current() or current()["role"] != "admin":
@@ -221,78 +228,36 @@ def add_user():
     class_name = request.form.get("class_name", "").strip()
 
     if not name or not code or not password:
-        flash("Vui lòng nhập đầy đủ họ tên, mã tài khoản và mật khẩu.")
+        flash("Vui lòng nhập đầy đủ thông tin.")
         return redirect(url_for("admin"))
 
     if role not in ("student", "teacher"):
         flash("Loại tài khoản không hợp lệ.")
         return redirect(url_for("admin"))
-@app.route("/admin/user/<int:user_id>/delete", methods=["POST"])
-def delete_user(user_id):
-    if not current() or current()["role"] != "admin":
-        return redirect(url_for("login"))
 
-    # Không cho admin tự xóa chính mình
-    if user_id == current()["id"]:
-        flash("Không thể tự xóa tài khoản quản trị viên đang đăng nhập.")
-        return redirect(url_for("admin"))
-
-    c = db()
-
-    user = c.execute(
-        "SELECT name, code, role FROM users WHERE id=?",
-        (user_id,)
-    ).fetchone()
-
-    if not user:
-        flash("Không tìm thấy tài khoản.")
-        c.close()
-        return redirect(url_for("admin"))
-
-    # Xóa dữ liệu liên quan
-    c.execute("DELETE FROM notifications WHERE user_id=?", (user_id,))
-    c.execute("DELETE FROM user_badges WHERE user_id=?", (user_id,))
-    c.execute("DELETE FROM journals WHERE user_id=?", (user_id,))
-    c.execute("DELETE FROM submissions WHERE user_id=?", (user_id,))
-    c.execute("DELETE FROM teacher_classes WHERE teacher_id=?", (user_id,))
-
-    # Xóa tài khoản
-    c.execute("DELETE FROM users WHERE id=?", (user_id,))
-
-    c.commit()
-    c.close()
-
-    flash(f"Đã xóa tài khoản {user['name']} ({user['code']}).")
-    return redirect(url_for("admin"))
     c = db()
 
     try:
         c.execute(
-            """
-            INSERT INTO users(name, code, password, role, class_name)
-            VALUES(?,?,?,?,?)
-            """,
+            "INSERT INTO users(name,code,password,role,class_name) VALUES(?,?,?,?,?)",
             (name, code, password, role, class_name)
         )
-
         c.commit()
-        flash(f"Đã tạo tài khoản {code} cho {name}.")
-
+        flash(f"Đã tạo tài khoản {code}.")
     except sqlite3.IntegrityError:
-        flash("Mã tài khoản đã tồn tại. Hãy sử dụng mã khác.")
+        flash("Mã tài khoản đã tồn tại.")
 
     c.close()
-
     return redirect(url_for("admin"))
 
-@app.route("/admin/class",methods=["POST"])
+
 @app.route("/admin/user/<int:user_id>/reset-password", methods=["POST"])
 def reset_user_password(user_id):
     if not current() or current()["role"] != "admin":
         return redirect(url_for("login"))
 
     if user_id == current()["id"]:
-        flash("Không thể cấp lại mật khẩu cho tài khoản đang đăng nhập.")
+        flash("Không thể cấp lại mật khẩu cho chính mình.")
         return redirect(url_for("admin"))
 
     c = db()
@@ -322,13 +287,59 @@ def reset_user_password(user_id):
     )
 
     return redirect(url_for("admin"))
+
+
+@app.route("/admin/user/<int:user_id>/delete", methods=["POST"])
+def delete_user(user_id):
+    if not current() or current()["role"] != "admin":
+        return redirect(url_for("login"))
+
+    if user_id == current()["id"]:
+        flash("Không thể tự xóa tài khoản đang đăng nhập.")
+        return redirect(url_for("admin"))
+
+    c = db()
+
+    user = c.execute(
+        "SELECT name, code FROM users WHERE id=?",
+        (user_id,)
+    ).fetchone()
+
+    if not user:
+        flash("Không tìm thấy tài khoản.")
+        c.close()
+        return redirect(url_for("admin"))
+
+    c.execute("DELETE FROM notifications WHERE user_id=?", (user_id,))
+    c.execute("DELETE FROM user_badges WHERE user_id=?", (user_id,))
+    c.execute("DELETE FROM journals WHERE user_id=?", (user_id,))
+    c.execute("DELETE FROM submissions WHERE user_id=?", (user_id,))
+    c.execute("DELETE FROM teacher_classes WHERE teacher_id=?", (user_id,))
+    c.execute("DELETE FROM users WHERE id=?", (user_id,))
+
+    c.commit()
+    c.close()
+
+    flash(f"Đã xóa tài khoản {user['name']} ({user['code']}).")
+    return redirect(url_for("admin"))
+
+
+@app.route("/admin/class",methods=["POST"])
 def add_class():
     if not teacher_required(): return redirect(url_for("login"))
     c=db()
+
     try:
-        c.execute("INSERT INTO classes(name,teacher_id) VALUES(?,?)",(request.form["name"],current()["id"])); c.commit()
-    except sqlite3.IntegrityError: flash("Lớp đã tồn tại.")
-    c.close(); return redirect(url_for("students"))
+        c.execute(
+            "INSERT INTO classes(name,teacher_id) VALUES(?,?)",
+            (request.form["name"],current()["id"])
+        )
+        c.commit()
+    except sqlite3.IntegrityError:
+        flash("Lớp đã tồn tại.")
+
+    c.close()
+    return redirect(url_for("students"))
 
 @app.route("/profile")
 def profile():
