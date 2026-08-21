@@ -149,7 +149,8 @@ def admin():
         "admin.html",
         stats=stats,
         subs=subs,
-        users=users
+        users=users,
+        files=os.listdir(UPLOAD)
     )
 
 @app.route("/admin/book",methods=["POST"])
