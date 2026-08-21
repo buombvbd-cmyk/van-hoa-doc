@@ -1,0 +1,20 @@
+DEPLOY NHANH LEN RENDER
+
+1. Tạo một repository GitHub mới, ví dụ: van-hoa-doc.
+2. Upload TOÀN BỘ các file/thư mục trong gói này lên repository.
+3. Vào Render > New > Web Service.
+4. Chọn repository van-hoa-doc.
+5. Render sẽ đọc render.yaml. Nếu hỏi cấu hình:
+   Build: pip install -r backend/requirements.txt
+   Start: uvicorn backend.main:APP --host 0.0.0.0 --port $PORT
+6. Deploy.
+7. Mở URL *.onrender.com.
+8. Đăng nhập:
+   hs001 / 123456
+   gv001 / 123456
+   admin / admin123
+
+LƯU Ý:
+- Đây là bản MVP để chạy thật và kiểm tra.
+- SQLite và file upload hiện chưa phù hợp production lâu dài vì filesystem mặc định của Render là ephemeral.
+- Bước production tiếp theo: Render Postgres + object storage + JWT/refresh token + giới hạn file + admin CRUD.

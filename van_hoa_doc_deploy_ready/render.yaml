@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: van-hoa-doc
+    runtime: python
+    region: singapore
+    plan: free
+    rootDir: .
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:APP --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health

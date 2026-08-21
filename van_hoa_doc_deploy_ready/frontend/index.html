@@ -1,0 +1,124 @@
+
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#2e7d32">
+<title>Văn Hóa Đọc</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#fffdf5;color:#17331c}
+button,input,textarea,select{font:inherit}button{cursor:pointer}
+.top{background:linear-gradient(120deg,#1b5e20,#66bb6a);color:#fff;padding:16px;position:sticky;top:0;z-index:5}
+.topin{max-width:1050px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.container{max-width:1050px;margin:auto;padding:18px 14px 90px}
+.logo{font-weight:800;font-size:22px}.role{background:#ffffff25;padding:8px 12px;border-radius:20px}
+.card{background:#fff;border-radius:18px;padding:18px;box-shadow:0 5px 20px #1b5e2012;margin-bottom:14px}
+input,textarea,select{width:100%;padding:12px;border:1px solid #d9e5da;border-radius:11px;margin:6px 0;background:#fff}
+textarea{min-height:120px}.btn{border:0;padding:11px 15px;border-radius:11px;background:#eee}.primary{background:#2e7d32;color:#fff}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(135deg,#e8f5e9,#fffdf5)}
+.login .card{width:min(430px,100%);text-align:center}.bookicon{font-size:58px}.green{color:#2e7d32}.hidden{display:none!important}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.post img{max-width:100%;max-height:300px;display:block;margin:10px auto;border-radius:14px}
+.tag{display:inline-block;background:#e8f5e9;color:#2e7d32;padding:6px 10px;border-radius:18px;font-size:13px}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;z-index:6}
+.nav{max-width:650px;margin:auto;display:flex;justify-content:space-around}
+.nav button{background:none;border:0;padding:10px 8px;color:#566}
+.nav button.active{color:#2e7d32;font-weight:bold}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.topin{align-items:flex-start}.container{padding-left:10px;padding-right:10px}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const API = localStorage.getItem('vhd_api') || window.location.origin;
+let token = localStorage.getItem('vhd_token') || '';
+let me = null;
+
+const $ = id => document.getElementById(id);
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+async function api(path,opt={}){
+  opt.headers={...(opt.headers||{}),...(token?{'Authorization':'Bearer '+token}:{})};
+  if(opt.body && !(opt.body instanceof FormData)) {
+    opt.headers['Content-Type']='application/json'; opt.body=JSON.stringify(opt.body);
+  }
+  const r=await fetch(API+path,opt);
+  if(!r.ok) throw new Error(await r.text());
+  return r.status===204?null:r.json();
+}
+function loginScreen(){
+root.innerHTML=`<section class="login"><div class="card">
+<div class="bookicon">📚</div><h1 class="green">VĂN HÓA ĐỌC</h1>
+<p>Đọc • Cảm nhận • Chia sẻ</p>
+<input id="code" placeholder="Mã tài khoản">
+<input id="pass" type="password" placeholder="Mật khẩu">
+<button class="btn primary" style="width:100%" onclick="doLogin()">🔐 Đăng nhập</button>
+<p style="color:#666;font-size:13px">Tài khoản do Admin cấp.</p>
+</div></section>`;
+}
+async function doLogin(){
+try{
+ const d=await api('/auth/login',{method:'POST',body:{username:$('code').value.trim(),password:$('pass').value}});
+ token=d.access_token; localStorage.setItem('vhd_token',token); await start();
+}catch(e){alert('Đăng nhập thất bại. Kiểm tra tài khoản hoặc máy chủ.')}
+}
+async function start(){
+ try{me=await api('/auth/me'); appShell(); await loadFeed();}
+ catch(e){localStorage.removeItem('vhd_token');token='';loginScreen()}
+}
+function appShell(){
+root.innerHTML=`<header class="top"><div class="topin"><div><div class="logo">🌿 Văn Hóa Đọc</div><small>${esc(me.name)}</small></div><div class="role">${esc(me.role_label)}</div></div></header>
+<main class="container">
+<section id="home" class="page"><div class="card"><h2>📖 Bảng tin</h2><p>Mọi người cùng chia sẻ sách, cảm nhận, hình ảnh, video và liên kết.</p><button class="btn primary" onclick="openPost()">＋ Chia sẻ bài đọc</button></div><div id="feed" class="grid"></div></section>
+<section id="search" class="page hidden"><div class="card"><h2>🔎 Tìm kiếm</h2><input id="q" oninput="loadFeed()" placeholder="Tìm sách, bài viết, chủ đề..."></div><div id="searchFeed" class="grid"></div></section>
+<section id="notify" class="page hidden"><div class="card"><h2>🔔 Thông báo</h2><p>Thông báo sẽ được đồng bộ từ hệ thống.</p></div></section>
+<section id="profile" class="page hidden"><div class="card"><h2>👤 Cá nhân</h2><p><b>${esc(me.name)}</b><br>Mã: ${esc(me.username)}<br>Vai trò: ${esc(me.role_label)}${me.class_name?'<br>Lớp: '+esc(me.class_name):''}</p>
+${['Giáo viên','Admin'].includes(me.role_label)?'<button class="btn primary" onclick="openActivity()">📝 Tạo hoạt động đọc</button>':''}
+${me.role_label==='Admin'?'<button class="btn" onclick="adminInfo()">⚙️ Quản lý tài khoản</button>':''}
+<button class="btn" onclick="logout()">Đăng xuất</button></div></section>
+</main>
+<nav class="bottom"><div class="nav">
+<button class="active" onclick="page('home',this)">🏠<br>Trang chủ</button>
+<button onclick="page('search',this)">🔎<br>Tìm kiếm</button>
+<button onclick="openPost()">➕<br>Đăng bài</button>
+<button onclick="page('notify',this)">🔔<br>Thông báo</button>
+<button onclick="page('profile',this)">👤<br>Cá nhân</button>
+</div></nav>
+<div id="modal" class="hidden"></div>`;
+}
+function page(id,btn){document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));$(id).classList.remove('hidden');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));btn?.classList.add('active');if(id==='search')loadFeed()}
+async function loadFeed(){
+ try{
+ const q=encodeURIComponent(($('q')?.value||''));
+ const data=await api('/posts?search='+q);
+ const html=data.map(p=>`<article class="card post"><b>${esc(p.author_name)}</b><small> • ${esc(p.author_role)}</small><h3>📖 ${esc(p.book_title)}</h3>${p.image_url?`<img src="${esc(p.image_url)}">`:''}<p>${esc(p.content)}</p><span class="tag">🏷️ ${esc(p.tag)}</span><p>⭐ ${p.rating}/5</p>${p.url?`<a href="${esc(p.url)}" target="_blank">🔗 Mở liên kết</a>`:''}<div class="actions"><button class="btn" onclick="like(${p.id})">❤️ ${p.likes}</button><button class="btn" onclick="comment(${p.id})">💬 Bình luận</button></div></article>`).join('');
+ $('feed').innerHTML=html; if($('searchFeed'))$('searchFeed').innerHTML=html;
+ }catch(e){}
+}
+async function like(id){try{await api('/posts/'+id+'/like',{method:'POST'});loadFeed()}catch(e){}}
+async function comment(id){const t=prompt('Nội dung bình luận:');if(!t)return;try{await api('/posts/'+id+'/comments',{method:'POST',body:{content:t}});alert('Đã bình luận')}catch(e){alert('Không thể bình luận')}}
+function openPost(){
+$('modal').classList.remove('hidden');$('modal').innerHTML=`<div style="position:fixed;inset:0;background:#0008;display:grid;place-items:center;padding:15px;z-index:20"><div class="card" style="width:min(620px,100%);max-height:90vh;overflow:auto"><h2>📸 Chia sẻ bài đọc</h2>
+<input id="book" placeholder="Tên sách / chủ đề"><select id="tag"><option>Văn học</option><option>Kỹ năng sống</option><option>Khoa học</option><option>STEM</option><option>Lịch sử</option><option>Nghệ thuật</option><option>Khác</option></select>
+<label>📷 Chụp/chọn trang sách</label><input id="photo" type="file" accept="image/*" capture="environment">
+<textarea id="content" placeholder="Điều mình ấn tượng..."></textarea><select id="rating"><option value="5">⭐ 5</option><option value="4">⭐ 4</option><option value="3">⭐ 3</option><option value="2">⭐ 2</option><option value="1">⭐ 1</option></select>
+<label>📎 File PDF/Word/ảnh/video</label><input id="file" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.mp4,.webm"><input id="url" placeholder="🔗 URL liên kết">
+<div class="actions"><button class="btn" onclick="closeModal()">Hủy</button><button class="btn primary" onclick="publish()">Đăng lên Trang chủ</button></div></div></div>`;
+}
+function closeModal(){$('modal').classList.add('hidden')}
+async function publish(){
+ try{
+  const fd=new FormData();
+  fd.append('book_title',$('book').value);fd.append('tag',$('tag').value);fd.append('content',$('content').value);fd.append('rating',$('rating').value);fd.append('url',$('url').value);
+  if($('photo').files[0])fd.append('image',$('photo').files[0]);
+  if($('file').files[0])fd.append('file',$('file').files[0]);
+  await api('/posts',{method:'POST',body:fd});closeModal();await loadFeed();page('home',document.querySelector('.nav button'));alert('Đã đăng bài');
+ }catch(e){alert('Đăng bài thất bại.')}
+}
+function openActivity(){alert('Màn hình tạo hoạt động đọc sẽ kết nối endpoint /activities ở bản tiếp theo.')}
+function adminInfo(){alert('Khu vực Admin: cấp tài khoản, khóa/mở tài khoản, quản lý nội dung và thống kê.')}
+function logout(){localStorage.removeItem('vhd_token');token='';me=null;loginScreen()}
+loginScreen(); if(token)start();
+</script>
+</body></html>
