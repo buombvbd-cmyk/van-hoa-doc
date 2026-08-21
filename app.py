@@ -227,7 +227,43 @@ def add_user():
     if role not in ("student", "teacher"):
         flash("Loại tài khoản không hợp lệ.")
         return redirect(url_for("admin"))
+@app.route("/admin/user/<int:user_id>/delete", methods=["POST"])
+def delete_user(user_id):
+    if not current() or current()["role"] != "admin":
+        return redirect(url_for("login"))
 
+    # Không cho admin tự xóa chính mình
+    if user_id == current()["id"]:
+        flash("Không thể tự xóa tài khoản quản trị viên đang đăng nhập.")
+        return redirect(url_for("admin"))
+
+    c = db()
+
+    user = c.execute(
+        "SELECT name, code, role FROM users WHERE id=?",
+        (user_id,)
+    ).fetchone()
+
+    if not user:
+        flash("Không tìm thấy tài khoản.")
+        c.close()
+        return redirect(url_for("admin"))
+
+    # Xóa dữ liệu liên quan
+    c.execute("DELETE FROM notifications WHERE user_id=?", (user_id,))
+    c.execute("DELETE FROM user_badges WHERE user_id=?", (user_id,))
+    c.execute("DELETE FROM journals WHERE user_id=?", (user_id,))
+    c.execute("DELETE FROM submissions WHERE user_id=?", (user_id,))
+    c.execute("DELETE FROM teacher_classes WHERE teacher_id=?", (user_id,))
+
+    # Xóa tài khoản
+    c.execute("DELETE FROM users WHERE id=?", (user_id,))
+
+    c.commit()
+    c.close()
+
+    flash(f"Đã xóa tài khoản {user['name']} ({user['code']}).")
+    return redirect(url_for("admin"))
     c = db()
 
     try:
